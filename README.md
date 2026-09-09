@@ -9,16 +9,17 @@ A Claude Skill that detects and fixes "unnatural line breaks": newlines inserted
 It catches things like this:
 
 ```
-This tool fetches participant information from a
-connpass event and lets you shuffle the order at
-random. Useful for deciding presentation order at
-lightning talk events.
+Call me Ishmael. Some years ago—never mind how long
+precisely—having little or no money in my purse, and
+nothing particular to interest me on shore, I thought
+I would sail about a little and see the watery part
+of the world.
 ```
 
 The rule is simple: only break lines at meaningful boundaries, such as paragraph breaks, list item boundaries, or around headings.
 
 ```
-This tool fetches participant information from a connpass event and lets you shuffle the order at random. Useful for deciding presentation order at lightning talk events.
+Call me Ishmael. Some years ago—never mind how long precisely—having little or no money in my purse, and nothing particular to interest me on shore, I thought I would sail about a little and see the watery part of the world.
 ```
 
 It targets both prose documentation (Markdown, README files) and code comments (docstrings, JSDoc, line/block comments). It handles both English and Japanese.
@@ -41,7 +42,7 @@ fix-unnatural-line-breaks/
 │   ├── rules.md          # How to fix them
 │   └── examples.md       # Before/after pairs
 ├── scripts/
-│   └── lint.py           # Heuristic detector (standard library only)
+│   └── lint.mjs          # Heuristic detector (plain Node.js, no dependencies)
 ├── README.md
 ├── README.ja.md
 └── LICENSE
@@ -65,14 +66,14 @@ git clone https://github.com/otnc/fix-unnatural-line-breaks <project>/.claude/sk
 
 ## Usage
 
-If `uv` is available, detection can run mechanically.
+Detection runs mechanically with plain Node.js — no install, no third-party dependency. (Node.js is a safe assumption here: Claude Code itself is distributed as a Node.js CLI, so wherever this Skill would actually run, Node.js is already present.)
 
 ```bash
-uv run scripts/lint.py path/to/README.md
-uv run scripts/lint.py --json path/to/file.ts
+node scripts/lint.mjs path/to/README.md
+node scripts/lint.mjs --json path/to/file.ts
 ```
 
-Without `uv`, Claude reviews the file manually using the criteria in `references/detection.md`.
+Without Node.js, Claude reviews the file manually using the criteria in `references/detection.md`.
 
 Detections are only suggestions. Code blocks, tables, and intentional line breaks (two trailing spaces, etc.) are excluded, and whether to actually fix a flagged line is a judgment call based on context.
 
@@ -90,12 +91,12 @@ How to fix what's detected: merging at the paragraph level, deciding upfront whi
 **references/examples.md**
 Before/after pairs for README prose, bullet lists, and code comments (TypeScript/Python).
 
-**scripts/lint.py**
-A standard-library-only detector. It flags likely mechanical wraps based on sentence-ending punctuation, trailing particles/conjunctions, and how the next line starts. Its own output is always in English, regardless of the language of the file being checked.
+**scripts/lint.mjs**
+A dependency-free Node.js detector. It flags likely mechanical wraps based on sentence-ending punctuation, trailing particles/conjunctions, and how the next line starts. Its own output is always in English, regardless of the language of the file being checked.
 
 ## Credits
 
-The rule this Skill encodes started as a personal `CLAUDE.md` convention used by [otoneko1102](https://github.com/otoneko1102): never insert unnatural mid-sentence line breaks in documentation or code comments. This Skill packages that rule for general use.
+The rule this Skill encodes started as a personal `CLAUDE.md` convention used by [otoneko.](https://github.com/otnc): never insert unnatural mid-sentence line breaks in documentation or code comments. This Skill packages that rule for general use.
 
 ## License
 

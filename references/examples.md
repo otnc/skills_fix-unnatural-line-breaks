@@ -4,21 +4,21 @@
 
 ```
 # Before
-このツールはconnpassのイベント参加者情報を取得し、
-ランダムに並び替えることができます。LT大会などで
-発表順を決める際にお使いください。
+吾輩は猫である。名前はまだ無い。どこで生れたかとんと
+見当がつかぬ。何でも薄暗いじめじめした所でニャーニャー
+泣いていた事だけは記憶している。
 
-## インストール方法
-以下のコマンドを実行してインストールしてください。
+## 出典について
+本文は夏目漱石『吾輩は猫である』の冒頭から引用しています。
 ```
 
 ```
 # After
-このツールはconnpassのイベント参加者情報を取得し、ランダムに並び替えることができます。LT大会などで発表順を決める際にお使いください。
+吾輩は猫である。名前はまだ無い。どこで生れたかとんと見当がつかぬ。何でも薄暗いじめじめした所でニャーニャー泣いていた事だけは記憶している。
 
-## インストール方法
+## 出典について
 
-以下のコマンドを実行してインストールしてください。
+本文は夏目漱石『吾輩は猫である』の冒頭から引用しています。
 ```
 
 Line breaks inside a paragraph get merged, but the blank line between a heading and the body text stays (and should be added if it was missing).
@@ -27,30 +27,31 @@ Line breaks inside a paragraph get merged, but the blank line between a heading 
 
 ```
 # Before
-This tool fetches participant information from a
-connpass event and lets you shuffle the order at
-random. Useful for deciding presentation order at
-lightning talk events.
+Call me Ishmael. Some years ago—never mind how long
+precisely—having little or no money in my purse, and
+nothing particular to interest me on shore, I thought
+I would sail about a little and see the watery part
+of the world.
 ```
 
 ```
 # After
-This tool fetches participant information from a connpass event and lets you shuffle the order at random. Useful for deciding presentation order at lightning talk events.
+Call me Ishmael. Some years ago—never mind how long precisely—having little or no money in my purse, and nothing particular to interest me on shore, I thought I would sail about a little and see the watery part of the world.
 ```
 
 ## Bullet lists
 
 ```
 # Before (an item's description is wrapped)
-- `shuffle(array)`: 配列をFisher-Yatesアルゴリズムで
-  シャッフルする。非破壊的な実装になっている。
-- `saveResult(...)`: 結果をファイルに保存する。
+- 『吾輩は猫である』: 夏目漱石が1905年から発表した長編小説。
+  猫の視点から人間社会を風刺的に描いている。
+- 『舞姫』: 森鴎外がドイツ留学の経験をもとに書いた短編小説。
 ```
 
 ```
 # After
-- `shuffle(array)`: 配列をFisher-Yatesアルゴリズムでシャッフルする。非破壊的な実装になっている。
-- `saveResult(...)`: 結果をファイルに保存する。
+- 『吾輩は猫である』: 夏目漱石が1905年から発表した長編小説。猫の視点から人間社会を風刺的に描いている。
+- 『舞姫』: 森鴎外がドイツ留学の経験をもとに書いた短編小説。
 ```
 
 ## What NOT to fix (intentional line breaks)
@@ -75,17 +76,17 @@ Text inside a table cell should be left alone regardless of length, as long as i
 ```ts
 // Before
 /**
- * connpassのイベント参加者ページをスクレイピングし、
- * 募集枠ごとの参加者一覧を取得する。connpassの公式APIには
- * 参加者一覧を返すエンドポイントが存在しないため、この機能は
- * 常にHTMLスクレイピングで実現している。
+ * この関数は青空文庫形式のテキストをHTMLに変換し、ルビ記法を
+ * <ruby>タグに置き換える。変換前のテキストに含まれる改行は
+ * 段落の区切りとしてそのまま保持され、それ以外の空白は詰めて
+ * 出力される。
  */
 ```
 
 ```ts
 // After
 /**
- * connpassのイベント参加者ページをスクレイピングし、募集枠ごとの参加者一覧を取得する。connpassの公式APIには参加者一覧を返すエンドポイントが存在しないため、この機能は常にHTMLスクレイピングで実現している。
+ * この関数は青空文庫形式のテキストをHTMLに変換し、ルビ記法を<ruby>タグに置き換える。変換前のテキストに含まれる改行は段落の区切りとしてそのまま保持され、それ以外の空白は詰めて出力される。
  */
 ```
 

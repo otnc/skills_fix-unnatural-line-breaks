@@ -6,22 +6,22 @@ Once you find an unnatural break, remove the newline and merge the two lines int
 
 ```
 # Before (Japanese, mechanically wrapped)
-これはとても長い説明文で、途中で改行が
-入ってしまっているために読みにくく
-なっている例です。
+石炭をば早や積み果てつ。中等室の卓のほとりはいと静かにて、
+熾熱灯の光の晴れがましきも徒なり。今宵は夜ごとにここに
+集ひ来る骨牌仲間もホテルに宿りて、船に残れるは余一人のみなれば。
 
 # After
-これはとても長い説明文で、途中で改行が入ってしまっているために読みにくくなっている例です。
+石炭をば早や積み果てつ。中等室の卓のほとりはいと静かにて、熾熱灯の光の晴れがましきも徒なり。今宵は夜ごとにここに集ひ来る骨牌仲間もホテルに宿りて、船に残れるは余一人のみなれば。
 ```
 
 ```
 # Before (English)
-This is a long explanation that has
-been wrapped at an arbitrary column
-width, which makes it awkward to read.
+It is a truth universally acknowledged, that a single
+man in possession of a good fortune, must be in want
+of a wife.
 
 # After
-This is a long explanation that has been wrapped at an arbitrary column width, which makes it awkward to read.
+It is a truth universally acknowledged, that a single man in possession of a good fortune, must be in want of a wife.
 ```
 
 ## Work paragraph by paragraph
@@ -61,12 +61,12 @@ Keep the comment syntax (`//`, `#`, `*`, etc.) intact and only merge the text co
 
 ```ts
 // Before
-// この関数はイベントIDを受け取り、connpassの
-// 参加者ページをスクレイピングして、募集枠ごとの
-// 参加者一覧を返す。
+// この関数は青空文庫形式のテキストを受け取り、ルビ記法や
+// 注記記法を取り除いた上で、段落ごとに分割した配列を
+// 返す。
 
 // After
-// この関数はイベントIDを受け取り、connpassの参加者ページをスクレイピングして、募集枠ごとの参加者一覧を返す。
+// この関数は青空文庫形式のテキストを受け取り、ルビ記法や注記記法を取り除いた上で、段落ごとに分割した配列を返す。
 ```
 
 For JSDoc/docstrings with tags like `@param` or `@returns`, keep each tag on its own line as a structural boundary, and only merge the description text within a single tag.
@@ -74,13 +74,13 @@ For JSDoc/docstrings with tags like `@param` or `@returns`, keep each tag on its
 ```ts
 /**
  * Before
- * @param eventId 対象イベントのID。connpassのURLに含まれる
- *   数値部分を渡す。
+ * @param text 変換対象の青空文庫形式テキスト。ルビ記法
+ *   (｜文字《ルビ》)を含んでいてもよい。
  */
 
 /**
  * After
- * @param eventId 対象イベントのID。connpassのURLに含まれる数値部分を渡す。
+ * @param text 変換対象の青空文庫形式テキスト。ルビ記法(｜文字《ルビ》)を含んでいてもよい。
  */
 ```
 

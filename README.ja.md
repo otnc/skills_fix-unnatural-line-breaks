@@ -9,15 +9,15 @@
 こういう改行を捕まえます。
 
 ```
-このツールはconnpassのイベント参加者情報を取得し、
-ランダムに並び替えることができます。LT大会などで
-発表順を決める際にお使いください。
+吾輩は猫である。名前はまだ無い。どこで生れたかとんと
+見当がつかぬ。何でも薄暗いじめじめした所でニャーニャー
+泣いていた事だけは記憶している。
 ```
 
 改行は段落の区切り・箇条書きの項目・見出しの前後といった、意味のある境界にだけ入れる、というのが基本方針です。
 
 ```
-このツールはconnpassのイベント参加者情報を取得し、ランダムに並び替えることができます。LT大会などで発表順を決める際にお使いください。
+吾輩は猫である。名前はまだ無い。どこで生れたかとんと見当がつかぬ。何でも薄暗いじめじめした所でニャーニャー泣いていた事だけは記憶している。
 ```
 
 対象はMarkdownなどのドキュメント本文と、コード中のコメント・docstring・JSDocの両方です。日本語・英語のどちらにも対応します。
@@ -40,7 +40,7 @@ fix-unnatural-line-breaks/
 │   ├── rules.md          # 直し方のルール
 │   └── examples.md       # before/after の対比例
 ├── scripts/
-│   └── lint.py           # 疑わしい改行を機械的に検出するスクリプト(標準ライブラリのみ)
+│   └── lint.mjs          # 疑わしい改行を機械的に検出するスクリプト(Node.js、依存パッケージなし)
 ├── README.md
 ├── README.ja.md
 └── LICENSE
@@ -64,14 +64,14 @@ git clone https://github.com/otnc/fix-unnatural-line-breaks <project>/.claude/sk
 
 ## 使い方
 
-`uv` が使える環境では、検出を機械的に行えます。
+検出はNode.jsだけで機械的に行えます。インストールも依存パッケージも不要です(Claude Code自体がNode.js製のCLIとして配布されているため、このSkillが実際に動く環境には最初からNode.jsが入っていると考えて問題ありません)。
 
 ```bash
-uv run scripts/lint.py path/to/README.md
-uv run scripts/lint.py --json path/to/file.ts
+node scripts/lint.mjs path/to/README.md
+node scripts/lint.mjs --json path/to/file.ts
 ```
 
-`uv` が無い環境では、Claude が `references/detection.md` の観点で目視チェックします。
+Node.jsが無い環境では、Claude が `references/detection.md` の観点で目視チェックします。
 
 検出はあくまで疑いの提示です。コードブロック・テーブル・意図的な改行(行末半角スペース2つなど)は対象外とし、実際に直すかどうかは文脈で判断します。
 
@@ -89,12 +89,12 @@ uv run scripts/lint.py --json path/to/file.ts
 **references/examples.md**
 README・箇条書き・コードコメント(TypeScript/Python)のbefore/after対比。
 
-**scripts/lint.py**
-標準ライブラリのみで動く検出スクリプト。行末の文末記号・助詞・接続語・次の行の書き出しから、機械的な折り返しの疑いを洗い出します。出力メッセージは(チェック対象のファイルの言語に関わらず)英語です。
+**scripts/lint.mjs**
+依存パッケージなしで動くNode.js製の検出スクリプト。行末の文末記号・助詞・接続語・次の行の書き出しから、機械的な折り返しの疑いを洗い出します。出力メッセージは(チェック対象のファイルの言語に関わらず)英語です。
 
 ## クレジット
 
-このSkillが対象とする規則は、[otoneko1102](https://github.com/otoneko1102) が個人のCLAUDE.mdで運用していた「ドキュメントやコードコメントで不自然な改行を入れない」というルールを、汎用のSkillとして切り出したものです。
+このSkillが対象とする規則は、[otoneko.](https://github.com/otnc) が個人のCLAUDE.mdで運用していた「ドキュメントやコードコメントで不自然な改行を入れない」というルールを、汎用のSkillとして切り出したものです。
 
 ## ライセンス
 

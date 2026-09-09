@@ -30,13 +30,13 @@ The target is both prose documentation (Markdown, README files) and code comment
 - Don't restructure content: splitting into bullet lists, rewording headings, removing redundant phrasing, or scrubbing AI-sounding style are out of scope (hand those off to a skill built for that, such as `natural-japanese` or `stop-ai-slop-jp` for Japanese text).
 - Don't touch Markdown tables, code block contents, URLs, inline code spans, or intentional Markdown line breaks (two trailing spaces, a trailing backslash, or an explicit `<br>`).
 - Don't touch commit messages or code formatting itself (that's Prettier/ESLint's job). The target here is prose meant for humans to read.
-- Don't run this against structured config formats such as CI workflow YAML, JSON, or embedded shell scripts. `scripts/lint.py` recognizes YAML frontmatter and simple `key: value` lines well enough to avoid the worst false positives, but it has no real YAML parser and cannot tell a wrapped prose sentence inside a block scalar (`key: |`) from wrapped shell script. Structured config is out of scope; only apply this skill to Markdown prose and code comments/docstrings.
+- Don't run this against structured config formats such as CI workflow YAML, JSON, or embedded shell scripts. `scripts/lint.mjs` recognizes YAML frontmatter and simple `key: value` lines well enough to avoid the worst false positives, but it has no real YAML parser and cannot tell a wrapped prose sentence inside a block scalar (`key: |`) from wrapped shell script. Structured config is out of scope; only apply this skill to Markdown prose and code comments/docstrings.
 
 ## Workflow
 
 1. Identify what kind of file you're looking at — Markdown documentation, or code comments.
 2. Read `references/detection.md` and keep the relevant criteria in mind for the language(s) involved (English, Japanese, or both mixed in the same file).
-3. If available, run `uv run scripts/lint.py <file>` to mechanically surface suspicious breaks (add `--json` for structured output). Without `uv`, do the same review by eye using `references/detection.md`.
+3. If Node.js is available (it almost always is, since Claude Code itself runs on it), run `node scripts/lint.mjs <file>` to mechanically surface suspicious breaks (add `--json` for structured output). No install or dependency is needed — it's plain Node.js with no third-party packages. Without Node.js, do the same review by eye using `references/detection.md`.
 4. Treat the lint output as suggestions, not verdicts. Filter out false positives (code blocks, tables, intentional breaks) before deciding what to actually fix.
 5. Apply the fixes following `references/rules.md`: merge broken sentences back into one line, and leave paragraph/list/heading/code-block boundaries untouched.
 6. Re-read the fixed paragraph to confirm the meaning and tone haven't shifted.
