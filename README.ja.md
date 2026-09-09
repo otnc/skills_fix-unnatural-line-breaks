@@ -53,13 +53,13 @@ SKILL.md・references・scripts の中身はすべて英語で書かれていま
 **Claude Code(個人用)**
 
 ```bash
-git clone https://github.com/otnc/fix-unnatural-line-breaks ~/.claude/skills/fix-unnatural-line-breaks
+git clone https://github.com/otnc/skills_fix-unnatural-line-breaks ~/.claude/skills/fix-unnatural-line-breaks
 ```
 
 **Claude Code(プロジェクト単位)**
 
 ```bash
-git clone https://github.com/otnc/fix-unnatural-line-breaks <project>/.claude/skills/fix-unnatural-line-breaks
+git clone https://github.com/otnc/skills_fix-unnatural-line-breaks <project>/.claude/skills/fix-unnatural-line-breaks
 ```
 
 ## 使い方
@@ -73,7 +73,7 @@ node scripts/lint.mjs --json path/to/file.ts
 
 Node.jsが無い環境では、Claude が `references/detection.md` の観点で目視チェックします。
 
-検出はあくまで疑いの提示です。コードブロック・テーブル・意図的な改行(行末半角スペース2つなど)は対象外とし、実際に直すかどうかは文脈で判断します。
+検出結果はあくまで疑いの提示であり、網羅的なリストではありません。スクリプトは少数の正規表現ヒューリスティックにすぎないため、実際は問題ない行(コードブロック・テーブル・意図的な改行など)を誤検出することもあれば、どのルールにも一致しない本物の不自然な改行を見逃すこともあります。実際に直すかどうかは文脈で判断したうえで、Claudeはフラグの立った行だけでなくファイル全体を目視でも読み、スクリプトが見逃した箇所まで拾います。
 
 ## ファイル
 

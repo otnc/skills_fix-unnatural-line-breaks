@@ -55,13 +55,13 @@ fix-unnatural-line-breaks/
 **Claude Code (personal)**
 
 ```bash
-git clone https://github.com/otnc/fix-unnatural-line-breaks ~/.claude/skills/fix-unnatural-line-breaks
+git clone https://github.com/otnc/skills_fix-unnatural-line-breaks ~/.claude/skills/fix-unnatural-line-breaks
 ```
 
 **Claude Code (per-project)**
 
 ```bash
-git clone https://github.com/otnc/fix-unnatural-line-breaks <project>/.claude/skills/fix-unnatural-line-breaks
+git clone https://github.com/otnc/skills_fix-unnatural-line-breaks <project>/.claude/skills/fix-unnatural-line-breaks
 ```
 
 ## Usage
@@ -75,7 +75,7 @@ node scripts/lint.mjs --json path/to/file.ts
 
 Without Node.js, Claude reviews the file manually using the criteria in `references/detection.md`.
 
-Detections are only suggestions. Code blocks, tables, and intentional line breaks (two trailing spaces, etc.) are excluded, and whether to actually fix a flagged line is a judgment call based on context.
+Detections are only suggestions, and the list is not exhaustive: the script is a small set of regex heuristics, so it flags some lines that are actually fine (code blocks, tables, intentional line breaks) and misses real unnatural breaks that don't match any of its rules. Whether to fix a flagged line is a judgment call based on context, and Claude also reads the whole file by eye — not just the flagged lines — to catch what the script missed.
 
 ## Files
 
