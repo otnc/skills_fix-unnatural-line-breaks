@@ -38,7 +38,11 @@ The following are fine as-is and should not be "fixed."
 - An intentional Markdown line break: two trailing spaces, or an explicit `<br>`.
 - A long URL or a standalone code line.
 - Poetry, code samples, or quotations where the line break itself carries meaning.
-- Structured config such as CI workflow YAML, JSON, or shell scripts embedded in a YAML block scalar (`key: |`). Nearly every line there is either a `key: value` pair or executable script, not prose, and `scripts/lint.py` has no real YAML parser to tell the difference reliably — treat such files as out of scope entirely rather than trying to lint them.
+- Structured config such as CI workflow YAML, JSON, or shell scripts embedded in a YAML block scalar (`key: |`). Nearly every line there is either a `key: value` pair or executable script, not prose, and `scripts/lint.mjs` has no real YAML parser to tell the difference reliably — treat such files as out of scope entirely rather than trying to lint them.
+
+## The lint script doesn't catch everything
+
+`scripts/lint.mjs` only flags a line ending on a tracked particle/word, or a break with no sentence-final punctuation before a lowercase/hiragana/kanji continuation. Real unnatural breaks fall outside those rules all the time — for example, a line that ends right after a comma with a capitalized word following, or a Japanese line that ends on a noun rather than a particle but is still mid-clause. Running the script narrows down where to look; it does not replace reading the file. Always walk every paragraph and comment block by eye using the criteria above, including the parts the script left unflagged.
 
 ## Where to look, by file type
 

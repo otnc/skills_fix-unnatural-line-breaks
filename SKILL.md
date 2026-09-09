@@ -37,7 +37,7 @@ The target is both prose documentation (Markdown, README files) and code comment
 1. Identify what kind of file you're looking at — Markdown documentation, or code comments.
 2. Read `references/detection.md` and keep the relevant criteria in mind for the language(s) involved (English, Japanese, or both mixed in the same file).
 3. If Node.js is available (it almost always is, since Claude Code itself runs on it), run `node scripts/lint.mjs <file>` to mechanically surface suspicious breaks (add `--json` for structured output). No install or dependency is needed — it's plain Node.js with no third-party packages. Without Node.js, do the same review by eye using `references/detection.md`.
-4. Treat the lint output as suggestions, not verdicts. Filter out false positives (code blocks, tables, intentional breaks) before deciding what to actually fix.
+4. **`lint.mjs` output is not the full list of what to fix.** It's a small set of regex heuristics, so it both flags things that are fine (false positives) and misses real unnatural breaks it has no rule for (false negatives) — a break that doesn't end in a tracked particle/word but is still mid-sentence, for instance. Treat it as a starting hint, not a checklist to clear. Filter out its false positives (code blocks, tables, intentional breaks), then still read every paragraph and comment block in the file yourself against `references/detection.md`, including the parts the tool didn't flag at all.
 5. Apply the fixes following `references/rules.md`: merge broken sentences back into one line, and leave paragraph/list/heading/code-block boundaries untouched.
 6. Re-read the fixed paragraph to confirm the meaning and tone haven't shifted.
 
@@ -49,3 +49,4 @@ Before calling it done, confirm:
 - [ ] No single list item is still wrapped across multiple lines (unless the item is genuinely long and that's intentional)
 - [ ] No single sentence in a code comment or docstring still spans multiple comment lines
 - [ ] The fix didn't touch code blocks, tables, URLs, or intentional line breaks
+- [ ] Every paragraph and comment block was actually read end to end — not just the lines `lint.mjs` happened to flag
