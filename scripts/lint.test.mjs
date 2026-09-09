@@ -1,7 +1,5 @@
-// Black-box tests for lint.mjs: write a temp file, run the CLI against it,
-// and check what it reports. Testing through the CLI (rather than importing
-// internals) keeps this in sync with what `node scripts/lint.mjs <file>`
-// actually does for a user.
+// Black-box tests for lint.mjs: write a temp file, run the CLI against it, and check what it reports.
+// Testing through the CLI (rather than importing internals) keeps this in sync with what `node scripts/lint.mjs <file>` actually does for a user.
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
 import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
@@ -95,6 +93,28 @@ test("only compares comment lines in non-Markdown source files, never code", () 
   const findings = findingsFor(content, "sample.ts");
   assert.equal(findings.length, 1);
   assert.equal(findings[0].line, 1);
+});
+
+test("flags a wrapped sentence in a # comment even when the next line is also a # comment", () => {
+  // Regression test: HEADING_RE ("#{1,6} ") used to be applied to every file type, so in a #-comment language a "# ..." continuation line matched it and was mistaken for a Markdown heading, silently suppressing the finding.
+  const content =
+    "# This script installs the dependencies needed to build the\n" +
+    "# project, then runs the test suite before exiting.\n";
+  const findings = findingsFor(content, "sample.py");
+  assert.equal(findings.length, 1);
+  assert.equal(findings[0].line, 1);
+});
+
+test("flags a wrapped sentence in a JSDoc/block comment even when the next line starts with *", () => {
+  // Regression test: LIST_ITEM_RE ("[-*+] ") used to be applied to every file type, so a " * ..." block-comment continuation line matched it and was mistaken for a Markdown bullet, silently suppressing the finding.
+  const content =
+    "/**\n" +
+    " * This function shuffles the given array in place using the\n" +
+    " * Fisher-Yates algorithm, and does not mutate the original.\n" +
+    " */\n";
+  const findings = findingsFor(content, "sample.ts");
+  assert.equal(findings.length, 1);
+  assert.equal(findings[0].line, 2);
 });
 
 test("prints a plain-text summary when no issues are found", () => {
