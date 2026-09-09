@@ -1,9 +1,9 @@
-# before/after 例集
+# Before/after examples
 
-## README・ドキュメント(日本語)
+## README / documentation (Japanese)
 
 ```
-# 修正前
+# Before
 このツールはconnpassのイベント参加者情報を取得し、
 ランダムに並び替えることができます。LT大会などで
 発表順を決める際にお使いください。
@@ -13,7 +13,7 @@
 ```
 
 ```
-# 修正後
+# After
 このツールはconnpassのイベント参加者情報を取得し、ランダムに並び替えることができます。LT大会などで発表順を決める際にお使いください。
 
 ## インストール方法
@@ -21,12 +21,12 @@
 以下のコマンドを実行してインストールしてください。
 ```
 
-段落内の改行は詰めるが、見出しとその後の本文の間の空行はそのまま残す(むしろ無かった場合は追加してよい)。
+Line breaks inside a paragraph get merged, but the blank line between a heading and the body text stays (and should be added if it was missing).
 
-## README・ドキュメント(英語)
+## README / documentation (English)
 
 ```
-# 修正前
+# Before
 This tool fetches participant information from a
 connpass event and lets you shuffle the order at
 random. Useful for deciding presentation order at
@@ -34,46 +34,46 @@ lightning talk events.
 ```
 
 ```
-# 修正後
+# After
 This tool fetches participant information from a connpass event and lets you shuffle the order at random. Useful for deciding presentation order at lightning talk events.
 ```
 
-## 箇条書き
+## Bullet lists
 
 ```
-# 修正前(項目の説明が折り返されている)
+# Before (an item's description is wrapped)
 - `shuffle(array)`: 配列をFisher-Yatesアルゴリズムで
   シャッフルする。非破壊的な実装になっている。
 - `saveResult(...)`: 結果をファイルに保存する。
 ```
 
 ```
-# 修正後
+# After
 - `shuffle(array)`: 配列をFisher-Yatesアルゴリズムでシャッフルする。非破壊的な実装になっている。
 - `saveResult(...)`: 結果をファイルに保存する。
 ```
 
-## 直さない例(意図的な改行)
+## What NOT to fix (intentional line breaks)
 
 ```markdown
-Markdownでは、行末に半角スペースを2つ置くと  
-改行が強制されます。
+Two trailing spaces at the end of a line  
+force a line break in Markdown.
 ```
 
-上記は行末の半角スペース2つによる意図的な改行(`<br>`相当)なので、詰めずにそのまま残す。
+The above uses two trailing spaces to force an explicit line break (equivalent to `<br>`) — leave it as-is.
 
 ```markdown
-| 項目 | 説明 |
+| Item | Description |
 | --- | --- |
-| `foo` | これはとても長い説明文だが、テーブルのセル内の改行なので触らない |
+| `foo` | This description is quite long, but it lives inside one table cell, so leave it alone |
 ```
 
-テーブルのセル内の文章は、たとえ長くても行として分割されていない限り触らない(セル自体を複数行に分けている場合は別)。
+Text inside a table cell should be left alone regardless of length, as long as it isn't split across multiple lines inside the cell itself.
 
-## コードコメント(TypeScript)
+## Code comments (TypeScript)
 
 ```ts
-// 修正前
+// Before
 /**
  * connpassのイベント参加者ページをスクレイピングし、
  * 募集枠ごとの参加者一覧を取得する。connpassの公式APIには
@@ -83,16 +83,16 @@ Markdownでは、行末に半角スペースを2つ置くと
 ```
 
 ```ts
-// 修正後
+// After
 /**
  * connpassのイベント参加者ページをスクレイピングし、募集枠ごとの参加者一覧を取得する。connpassの公式APIには参加者一覧を返すエンドポイントが存在しないため、この機能は常にHTMLスクレイピングで実現している。
  */
 ```
 
-## コードコメント(Python, docstring)
+## Code comments (Python docstring)
 
 ```python
-# 修正前
+# Before
 def shuffle(items):
     """Shuffle the given list using the Fisher-Yates
     algorithm. The input list is not mutated; a new
@@ -101,12 +101,12 @@ def shuffle(items):
 ```
 
 ```python
-# 修正後
+# After
 def shuffle(items):
     """Shuffle the given list using the Fisher-Yates algorithm. The input list is not mutated; a new list is returned instead."""
 ```
 
-1行に収まらないほど長いdocstringになる場合は、文単位で改行してもよいが、1つの文を複数行に割らない。
+If a docstring is too long to fit in a single readable line, it's fine to break it sentence-by-sentence, as long as no single sentence spans more than one line.
 
 ```python
 def shuffle(items):

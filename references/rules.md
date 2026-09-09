@@ -1,91 +1,91 @@
-# 直し方のルール
+# How to fix it
 
-## 基本操作: 改行を「詰める」
+## Basic operation: join the lines
 
-不自然な改行を見つけたら、その改行文字を取り除いて1行にまとめる。 日本語の場合は改行をそのまま削除する(単語間にスペースを入れる必要はない)。 英語の場合は改行を半角スペース1つに置き換える(単語がくっつかないようにする)。
+Once you find an unnatural break, remove the newline and merge the two lines into one. For Japanese, just delete the newline — no space is needed between the joined text. For English, replace the newline with a single space so the words don't run together.
 
 ```
-# 修正前(日本語、機械的な折り返し)
+# Before (Japanese, mechanically wrapped)
 これはとても長い説明文で、途中で改行が
 入ってしまっているために読みにくく
 なっている例です。
 
-# 修正後
+# After
 これはとても長い説明文で、途中で改行が入ってしまっているために読みにくくなっている例です。
 ```
 
 ```
-# 修正前(英語)
+# Before (English)
 This is a long explanation that has
 been wrapped at an arbitrary column
 width, which makes it awkward to read.
 
-# 修正後
+# After
 This is a long explanation that has been wrapped at an arbitrary column width, which makes it awkward to read.
 ```
 
-## 段落単位でまとめて処理する
+## Work paragraph by paragraph
 
-1つの段落の中に複数の不自然な改行がある場合は、段落全体を1行に結合してから、改めて意味のある区切りだけを見直す。 1行ずつ個別に直すと、直したそばから次の行との整合性が崩れることがあるため、段落単位で作業する。
+When a paragraph has several unnatural breaks, join the whole paragraph into one line first, then re-check for any boundary that should actually be kept. Fixing line-by-line in isolation can leave inconsistencies with the next line you haven't looked at yet, so treat each paragraph as one unit of work.
 
-## 残すべき改行を先に確定させる
+## Decide which breaks to keep before you start joining
 
-詰める前に、次の改行は残す(触らない)と決めてから作業する。
+Before merging anything, decide that the following breaks are off-limits.
 
-- 空行(段落と段落の区切り)
-- 見出し行の前後の改行
-- 箇条書きの各項目の間の改行
-- コードブロック(\`\`\`)の中の改行
-- テーブルの行の改行
-- Markdownで明示的に改行を指定している箇所(行末の半角スペース2つ、`<br>`、バックスラッシュ)
+- Blank lines (paragraph boundaries).
+- The line breaks immediately before and after a heading.
+- The line break between one list item and the next.
+- Any line break inside a fenced code block (\`\`\`).
+- Any line break inside a table row.
+- An explicit Markdown line break (two trailing spaces, a trailing backslash, or `<br>`).
 
-これらに該当しない改行だけを詰める対象にする。
+Only join line breaks that don't fall into one of these categories.
 
-## 箇条書きの項目自体が長い場合
+## When a single list item is long
 
-1つの箇条書き項目の説明が長くなり、複数行に折り返されている場合も、項目全体を1行にまとめる。 項目を複数の文に分けたい場合は、文を分けること自体は構わないが、分けた文をさらに改行で折り返さない。
+If one bullet's description is long and has been wrapped across multiple lines, merge the whole item back into one line. It's fine to split the item into multiple sentences if that helps clarity, but don't then wrap those sentences again.
 
 ```
-# 修正前
+# Before
 - この関数は与えられた配列をシャッフルする。
   内部的にはFisher-Yatesアルゴリズムを使って
   おり、引数の配列自体は書き換えない。
 
-# 修正後
+# After
 - この関数は与えられた配列をシャッフルする。内部的にはFisher-Yatesアルゴリズムを使っており、引数の配列自体は書き換えない。
 ```
 
-## コードコメント・docstringの場合
+## Code comments and docstrings
 
-コメント記法(`//`、`#`、`*` など)を保ったまま、コメントの中身だけを1行にまとめる。 複数の `//` 行にまたがる1つの文は、1つの `//` 行にまとめる。 意図的に段落を分けているコメント(空のコメント行で区切られている場合など)は、段落ごとに1行にする。
+Keep the comment syntax (`//`, `#`, `*`, etc.) intact and only merge the text content. When one sentence spans several `//` lines, collapse it into a single `//` line. If the comment intentionally separates paragraphs (for example, with a blank comment line between them), keep that separation and merge within each paragraph.
 
 ```ts
-// 修正前
+// Before
 // この関数はイベントIDを受け取り、connpassの
 // 参加者ページをスクレイピングして、募集枠ごとの
 // 参加者一覧を返す。
 
-// 修正後
+// After
 // この関数はイベントIDを受け取り、connpassの参加者ページをスクレイピングして、募集枠ごとの参加者一覧を返す。
 ```
 
-JSDoc/docstringで `@param` や `@returns` などのタグが使われている場合、タグ自体は行の区切りとして残し、各タグの説明文の中だけを1行にまとめる。
+For JSDoc/docstrings with tags like `@param` or `@returns`, keep each tag on its own line as a structural boundary, and only merge the description text within a single tag.
 
 ```ts
 /**
- * 修正前
+ * Before
  * @param eventId 対象イベントのID。connpassのURLに含まれる
  *   数値部分を渡す。
  */
 
 /**
- * 修正後
+ * After
  * @param eventId 対象イベントのID。connpassのURLに含まれる数値部分を渡す。
  */
 ```
 
-## 直したあとの確認
+## After you fix it
 
-- 詰めた結果、文の意味やニュアンスが変わっていないか読み直す。
-- 詰めた行が極端に長くなっても、それ自体は修正失敗ではない。表示上の折り返しはエディタやビューアに任せる。
-- コードのdiffが意図せず大きくなりすぎる場合(1文字の修正のつもりが段落全体の再フォーマットになる場合)は、変更理由を一言添えるか、無関係な修正と一緒のコミットにしない。
+- Re-read the merged text to confirm the meaning and nuance haven't shifted.
+- A resulting line that's now very long is not a sign of failure — let the display's soft-wrap handle it.
+- If a diff would otherwise balloon in size (a one-character fix turning into a full paragraph reflow), either explain why in the commit/PR description, or avoid bundling it with an unrelated change.

@@ -1,50 +1,51 @@
 ---
 name: fix-unnatural-line-breaks
-description: 文章(Markdown・READMEなどのドキュメント、コード中のコメントやdocstring)に、文の途中で改行を入れる「不自然な改行」がないかを検出し、直す。日本語・英語どちらにも対応する。「改行がおかしい」「文の途中で切れている」「一定の文字数で折り返されている」「読みにくい改行」「ハードラップになっている」といった指摘や、ドキュメント・コメントの新規作成・レビュー・リライトで使う。Markdownの箇条書きの整形自体や、AI臭さ・冗長表現の除去は対象外(それぞれ別スキルの領域)。
+description: Detects and fixes "unnatural line breaks" in prose (Markdown/README-style documentation, and code comments or docstrings) — newlines inserted mid-sentence just to keep lines under some fixed column width. Works on both English and Japanese text. Use for requests like "fix the line breaks," "this is hard-wrapped," "the text is cut off mid-sentence," "unnatural line wrapping," "改行がおかしい," "文の途中で改行が入っている," "一定の文字数で折り返されている," as well as when writing, reviewing, or rewriting documentation and comments. Does not cover restructuring bullet lists, rewording headings, or removing AI-sounding phrasing/redundancy (those belong to other skills).
 metadata:
-  trigger: ドキュメントやコードコメントの改行・折り返しのチェックと修正
-  language: ja, en
+  trigger: line-break/line-wrap checks and fixes in documentation and code comments
+  language: en, ja
 ---
 
 # fix-unnatural-line-breaks
 
-文章の途中で、一定の文字数(カラム幅)に合わせて改行を挿入する書き方をやめさせるためのスキル。改行は段落の区切り・箇条書きの項目・見出しの前後といった、意味のある境界にだけ入れる。
+A skill for eliminating a specific bad habit: inserting a newline mid-sentence just to keep the line under some fixed column width. Line breaks should only appear at meaningful boundaries — paragraph breaks, list item boundaries, and around headings.
 
-## 大原則
+## Core principle
 
-1文・1段落は、それが終わるまで改行を入れない。 途中で折り返したくなっても、次の意味のある区切り(段落の終わり、箇条書きの項目の終わり、見出しの前後、コードブロックの前後)が来るまでは1行に書き続ける。 表示上の折り返し(ソフトラップ)は、エディタやブラウザ、ターミナルに任せる。
+Don't break a sentence or paragraph until it actually ends. Even when a line "feels" long, keep writing on the same line until the next meaningful boundary (end of paragraph, end of a list item, before/after a heading, before/after a code block). Let the editor, browser, or terminal handle visual wrapping (soft wrap) — the source itself should not contain a hard-coded newline chosen purely for line length.
 
-これは英語にも日本語にも同じように当てはまる。むしろ日本語のほうが被害が大きい。 日本語には単語間のスペースがないため、任意の位置で改行を入れても文法的に破綻して見えないが、読点や助詞の直後、文節の途中で行が切れると、黙読のリズムが崩れ、意味の区切りを見誤らせる。
+This applies equally to English and Japanese, but the damage is arguably worse in Japanese. Japanese has no spaces between words, so an arbitrary line break doesn't look grammatically broken the way it might in English — yet breaking right after a comma, particle, or in the middle of a phrase still disrupts the reading rhythm and makes it easy to misread where a clause actually ends.
 
-対象はMarkdownなどのドキュメント本文と、コード中のコメント・docstring・JSDocの両方。 ドキュメントの場合、多くのMarkdownレンダラーは段落内の単一改行を空白1つとして扱うため見た目には影響しないことが多いが、ソース自体の読みやすさ・差分のしやすさ・改行がそのまま表示される環境(コミットメッセージ、ターミナル、コードコメントのホバー表示など)への配慮として、そもそも入れない。 コードコメントの場合はレンダラーによる救済がなく、改行がそのまま読者の目に入るため、実害はさらに直接的。
+The target is both prose documentation (Markdown, README files) and code comments, docstrings, and JSDoc. For documentation, most Markdown renderers collapse a single newline inside a paragraph into a single space, so the rendered output often looks fine either way — but the raw source still suffers: it's harder to read as source, diffs get needlessly large when a whole paragraph reflows, and there are places where the raw newline is shown as-is (commit messages, terminals, an editor's hover tooltip for a code comment). For code comments there is no renderer to save you — the line break is shown exactly as written, so the harm is direct and immediate.
 
-## やること
+## Do
 
-- 新しく文章(ドキュメント・コメント)を書くときは、最初から1段落1行(または1文1行)で書き、任意の文字数で折り返さない。
-- 既存の文章をレビュー・修正するときは、`references/detection.md` の観点で「文の途中で切れている改行」を探し、`references/rules.md` の直し方に従って直す。
-- 直すときは、その改行を単純に空白(日本語の場合は何も挟まない)に置き換えて1行にまとめる。文意やスペースの要不要の判断に迷う具体例は `references/examples.md` を参照する。
-- 直した結果、1行が非常に長くなっても構わない。改行を入れ直す基準は文字数ではなく、段落・箇条書き・見出し・コードブロックといった構造上の境界だけ。
+- When writing new prose (documentation or comments) from scratch, write one paragraph per line (or one sentence per line) from the start, and never wrap at an arbitrary column width.
+- When reviewing or fixing existing prose, use the criteria in `references/detection.md` to find breaks that cut a sentence in the middle, then fix them following `references/rules.md`.
+- To fix one, simply remove the line break and join the two lines: insert a single space for English, and nothing (no space) for Japanese. See `references/examples.md` for concrete cases where the right join is ambiguous.
+- It's fine — expected, even — for the fixed line to become very long. The only thing that should trigger a new line break is a structural boundary (paragraph, list item, heading, code block), never a character count.
 
-## やらないこと
+## Don't
 
-- 箇条書きへの分解、見出しの言い換え、冗長表現の削除、AI臭さの除去など、文章の内容や構造そのものを変える作業はしない(必要なら `natural-japanese` や `stop-ai-slop-jp` など別スキルに委ねる)。
-- Markdownのテーブルやコードブロック、URL、インラインコードの中身、意図的な `<br>` やMarkdownの明示的な改行(行末の半角スペース2つ、バックスラッシュ)には手を入れない。
-- コミットメッセージやコード自体のフォーマット(Prettier/ESLintの対象)には踏み込まない。対象はあくまで人間が読む文章。
+- Don't restructure content: splitting into bullet lists, rewording headings, removing redundant phrasing, or scrubbing AI-sounding style are out of scope (hand those off to a skill built for that, such as `natural-japanese` or `stop-ai-slop-jp` for Japanese text).
+- Don't touch Markdown tables, code block contents, URLs, inline code spans, or intentional Markdown line breaks (two trailing spaces, a trailing backslash, or an explicit `<br>`).
+- Don't touch commit messages or code formatting itself (that's Prettier/ESLint's job). The target here is prose meant for humans to read.
+- Don't run this against structured config formats such as CI workflow YAML, JSON, or embedded shell scripts. `scripts/lint.py` recognizes YAML frontmatter and simple `key: value` lines well enough to avoid the worst false positives, but it has no real YAML parser and cannot tell a wrapped prose sentence inside a block scalar (`key: |`) from wrapped shell script. Structured config is out of scope; only apply this skill to Markdown prose and code comments/docstrings.
 
-## 進め方
+## Workflow
 
-1. 対象ファイルの種類(Markdownドキュメントか、コード中のコメントか)を確認する。
-2. `references/detection.md` を読み、対象の言語(日本語/英語)に応じた検出観点を頭に入れる。
-3. 可能なら `uv run scripts/lint.py <file>` を実行し、疑わしい改行の候補を機械的に洗い出す(`--json` で構造化出力も可能)。`uv` が使えない環境では、`references/detection.md` の観点で目視チェックする。
-4. lintの検出結果は疑いの提示にすぎない。誤検出(コードブロック・テーブル・意図的な改行など)を除外しながら、実際に直す箇所を判断する。
-5. `references/rules.md` に従い、該当箇所を1行にまとめる。段落境界・箇条書き・見出し・コードブロックはそのまま残す。
-6. 直した箇所が元の意味・トーンを変えていないか、直した段落を読み直して確認する。
+1. Identify what kind of file you're looking at — Markdown documentation, or code comments.
+2. Read `references/detection.md` and keep the relevant criteria in mind for the language(s) involved (English, Japanese, or both mixed in the same file).
+3. If available, run `uv run scripts/lint.py <file>` to mechanically surface suspicious breaks (add `--json` for structured output). Without `uv`, do the same review by eye using `references/detection.md`.
+4. Treat the lint output as suggestions, not verdicts. Filter out false positives (code blocks, tables, intentional breaks) before deciding what to actually fix.
+5. Apply the fixes following `references/rules.md`: merge broken sentences back into one line, and leave paragraph/list/heading/code-block boundaries untouched.
+6. Re-read the fixed paragraph to confirm the meaning and tone haven't shifted.
 
-## クイックセルフチェック
+## Quick self-check
 
-書き終えた・直し終えたら、次を確認する。
+Before calling it done, confirm:
 
-- [ ] 段落の途中に、意味のある区切りがない改行が残っていないか
-- [ ] 箇条書きの1項目が、複数行に折り返されていないか(項目が長い場合を除く)
-- [ ] コードコメント・docstringの1文が、複数行にまたがっていないか
-- [ ] 直した箇所が、コードブロック・テーブル・URL・意図的な改行を巻き込んでいないか
+- [ ] No line break remains in the middle of a paragraph without a meaningful boundary justifying it
+- [ ] No single list item is still wrapped across multiple lines (unless the item is genuinely long and that's intentional)
+- [ ] No single sentence in a code comment or docstring still spans multiple comment lines
+- [ ] The fix didn't touch code blocks, tables, URLs, or intentional line breaks

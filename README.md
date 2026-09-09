@@ -1,99 +1,102 @@
-[English](README.en.md) | 日本語
+English | [日本語](README.ja.md)
 
 # fix-unnatural-line-breaks
 
-文章の途中で、一定の文字数(カラム幅)に合わせて改行を挿入する「不自然な改行」を検出し、直すための Claude Skill です。
+A Claude Skill that detects and fixes "unnatural line breaks": newlines inserted mid-sentence just to keep lines under some fixed column width.
 
-## これは何を直すのか
+## What this fixes
 
-こういう改行を捕まえます。
-
-```
-このツールはconnpassのイベント参加者情報を取得し、
-ランダムに並び替えることができます。LT大会などで
-発表順を決める際にお使いください。
-```
-
-改行は段落の区切り・箇条書きの項目・見出しの前後といった、意味のある境界にだけ入れる、というのが基本方針です。
+It catches things like this:
 
 ```
-このツールはconnpassのイベント参加者情報を取得し、ランダムに並び替えることができます。LT大会などで発表順を決める際にお使いください。
+This tool fetches participant information from a
+connpass event and lets you shuffle the order at
+random. Useful for deciding presentation order at
+lightning talk events.
 ```
 
-対象はMarkdownなどのドキュメント本文と、コード中のコメント・docstring・JSDocの両方です。日本語・英語のどちらにも対応します。
+The rule is simple: only break lines at meaningful boundaries, such as paragraph breaks, list item boundaries, or around headings.
 
-## なぜ直すのか
+```
+This tool fetches participant information from a connpass event and lets you shuffle the order at random. Useful for deciding presentation order at lightning talk events.
+```
 
-多くのMarkdownレンダラーは段落内の単一改行を空白1つとして扱うため、見た目には影響しないことが多いですが、次のような場面で実害があります。
+It targets both prose documentation (Markdown, README files) and code comments (docstrings, JSDoc, line/block comments). It handles both English and Japanese.
 
-- ソース自体が読みにくい(diffやレビューで、文の途中で行が切れているのは不自然)
-- 1文字の修正のつもりで段落全体を書き直すと、diffが無意味に大きくなる
-- コードコメントやターミナル、コミットメッセージなど、改行がそのまま表示される環境では、見た目にもそのまま崩れる
+## Why this matters
 
-## 構成
+Most Markdown renderers treat a single newline inside a paragraph as a space, so the rendered output often looks fine either way. Still, the raw source suffers in a few concrete ways.
+
+- The source itself is harder to read and review; a sentence cut off mid-way looks broken in a diff.
+- A one-word edit turns into a full-paragraph reflow, making diffs needlessly large.
+- In places where line breaks are shown as-is (code comments, terminals, commit messages), the awkward wrapping is visible directly.
+
+## Layout
 
 ```
 fix-unnatural-line-breaks/
-├── SKILL.md              # コアルール + 進め方 + クイックチェック
+├── SKILL.md              # Core rules + workflow + quick self-check
 ├── references/
-│   ├── detection.md      # 不自然な改行の見分け方(日本語/英語)
-│   ├── rules.md          # 直し方のルール
-│   └── examples.md       # before/after の対比例
+│   ├── detection.md      # How to spot unnatural breaks (Japanese/English)
+│   ├── rules.md          # How to fix them
+│   └── examples.md       # Before/after pairs
 ├── scripts/
-│   └── lint.py           # 疑わしい改行を機械的に検出するスクリプト(標準ライブラリのみ)
+│   └── lint.py           # Heuristic detector (standard library only)
 ├── README.md
-├── README.en.md
+├── README.ja.md
 └── LICENSE
 ```
 
-## インストール
+`SKILL.md`, `references/`, and `scripts/` are all written in English so the Skill itself is equally usable and reviewable by Japanese and English speakers alike (the `description` field that triggers it also includes both English and Japanese phrasing). Detection rules and examples specific to Japanese text are covered within that English prose, using actual Japanese sample sentences where relevant.
 
-**Claude Code(個人用)**
+## Install
+
+**Claude Code (personal)**
 
 ```bash
 git clone https://github.com/otnc/fix-unnatural-line-breaks ~/.claude/skills/fix-unnatural-line-breaks
 ```
 
-**Claude Code(プロジェクト単位)**
+**Claude Code (per-project)**
 
 ```bash
 git clone https://github.com/otnc/fix-unnatural-line-breaks <project>/.claude/skills/fix-unnatural-line-breaks
 ```
 
-## 使い方
+## Usage
 
-`uv` が使える環境では、検出を機械的に行えます。
+If `uv` is available, detection can run mechanically.
 
 ```bash
 uv run scripts/lint.py path/to/README.md
 uv run scripts/lint.py --json path/to/file.ts
 ```
 
-`uv` が無い環境では、Claude が `references/detection.md` の観点で目視チェックします。
+Without `uv`, Claude reviews the file manually using the criteria in `references/detection.md`.
 
-検出はあくまで疑いの提示です。コードブロック・テーブル・意図的な改行(行末半角スペース2つなど)は対象外とし、実際に直すかどうかは文脈で判断します。
+Detections are only suggestions. Code blocks, tables, and intentional line breaks (two trailing spaces, etc.) are excluded, and whether to actually fix a flagged line is a judgment call based on context.
 
-## ファイル
+## Files
 
 **SKILL.md**
-大原則、やること/やらないこと、進め方、クイックセルフチェック。
+Core principles, what to do / what not to do, workflow, and a quick self-check.
 
 **references/detection.md**
-不自然な改行の見分け方。日本語特有の観点(助詞の直後・直前など)と英語特有の観点(前置詞句の途中など)、誤検出しやすい箇所を整理しています。
+How to spot unnatural line breaks: Japanese-specific cues (right after/before a particle, etc.), English-specific cues (mid-prepositional-phrase, etc.), and places where false positives are common.
 
 **references/rules.md**
-検出したあとの直し方。段落単位でまとめる、残すべき改行を先に確定させる、コードコメントでの扱いなど。
+How to fix what's detected: merging at the paragraph level, deciding upfront which breaks to keep, and how to handle code comments.
 
 **references/examples.md**
-README・箇条書き・コードコメント(TypeScript/Python)のbefore/after対比。
+Before/after pairs for README prose, bullet lists, and code comments (TypeScript/Python).
 
 **scripts/lint.py**
-標準ライブラリのみで動く検出スクリプト。行末の文末記号・助詞・接続語・次の行の書き出しから、機械的な折り返しの疑いを洗い出します。
+A standard-library-only detector. It flags likely mechanical wraps based on sentence-ending punctuation, trailing particles/conjunctions, and how the next line starts. Its own output is always in English, regardless of the language of the file being checked.
 
-## クレジット
+## Credits
 
-このSkillが対象とする規則は、[otoneko1102](https://github.com/otoneko1102) が個人のCLAUDE.mdで運用していた「ドキュメントやコードコメントで不自然な改行を入れない」というルールを、汎用のSkillとして切り出したものです。
+The rule this Skill encodes started as a personal `CLAUDE.md` convention used by [otoneko1102](https://github.com/otoneko1102): never insert unnatural mid-sentence line breaks in documentation or code comments. This Skill packages that rule for general use.
 
-## ライセンス
+## License
 
-MIT。詳細は `LICENSE` を参照。
+MIT. See `LICENSE`.

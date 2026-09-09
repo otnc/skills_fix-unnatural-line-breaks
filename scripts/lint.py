@@ -1,15 +1,16 @@
 #!/usr/bin/env python3
 """
-文章(Markdownドキュメント・コードコメント)の中から、文の途中で機械的に
-折り返されたと思われる改行を検出する。標準ライブラリのみで動作する。
+Detects line breaks that look like they were mechanically wrapped mid-sentence,
+in Markdown documentation or code comments. Standard library only.
 
-使い方:
+Usage:
     uv run scripts/lint.py <file> [<file> ...]
     uv run scripts/lint.py --json <file>
 
-このスクリプトはlintであり、検出件数によって終了コードを変えることはしない
-(exit code 0)。入力ファイルが読めない場合のみ exit code 1 を返す。
-検出はあくまで疑いの提示であり、直すかどうかの判断は人間・AIが行う。
+This is a lint, not a gate: it always exits 0 regardless of how many
+findings it reports. It only exits 1 when an input file can't be read.
+A finding is a suggestion, not a verdict — deciding whether to fix it
+is left to the human or the AI reading the output.
 """
 
 from __future__ import annotations
@@ -19,21 +20,25 @@ import re
 import sys
 from dataclasses import dataclass, asdict
 
-# Windowsのコンソールがcp932等の場合に日本語出力が文字化けするのを防ぐ。
+# Force UTF-8 output so Japanese text doesn't get mangled on a Windows
+# console using a legacy code page (e.g. cp932).
 for _stream in (sys.stdout, sys.stderr):
     if hasattr(_stream, "reconfigure"):
         _stream.reconfigure(encoding="utf-8")
 
-# 行末がこれらで終わっていれば「文が終わっている」とみなし、疑わない。
+# A line ending in one of these characters is considered "sentence-complete"
+# and is never flagged.
 SENTENCE_END_CHARS = tuple("。」』.!?！？:;：；」)]}>*`")
 
-# 行末がこれらの助詞・接続助詞1語で終わっていれば、文の途中で切れている疑いが強い。
+# A line ending in one of these single Japanese particles/conjunctions is a
+# strong signal that the sentence was cut off mid-way.
 JP_TRAILING_PARTICLES = (
     "は", "が", "を", "に", "で", "と", "も", "の", "へ", "や", "な", "な、",
     "から", "まで", "より", "ので", "けど", "けれど", "しかし", "ただし",
 )
 
-# 行末がこれらの英単語(前置詞・接続詞・冠詞など)で終わっていれば疑う。
+# A line ending in one of these English words (preposition/conjunction/
+# article/etc.) is treated the same way.
 EN_TRAILING_WORDS = {
     "a", "an", "the", "and", "or", "but", "of", "to", "with", "in", "on",
     "at", "for", "that", "which", "who", "as", "is", "are", "was", "were",
@@ -47,6 +52,15 @@ HEADING_RE = re.compile(r"^\s*#{1,6}\s+")
 COMMENT_PREFIX_RE = re.compile(r"^\s*(//|#|\*|///|;;)\s?")
 BLOCKQUOTE_RE = re.compile(r"^\s*>")
 
+# A YAML mapping key ("name: ...", "- type: markdown", "attributes:").
+# Used to skip structural lines in .yml/.yaml files so they aren't mistaken
+# for wrapped prose; this deliberately does not try to parse block scalars
+# (`key: |`) since that requires tracking indentation, so genuinely wrapped
+# prose inside a block scalar can still slip through undetected.
+YAML_KEY_RE = re.compile(r"^\s*(-\s+)?[A-Za-z0-9_.\-]+:(\s|$)")
+
+YAML_EXTENSIONS = (".yml", ".yaml")
+
 
 @dataclass
 class Finding:
@@ -58,7 +72,8 @@ class Finding:
 
 
 def is_intentional_break(line: str) -> bool:
-    """Markdownの明示的な改行(行末半角スペース2つ、バックスラッシュ)かどうか"""
+    """Whether this is an explicit Markdown line break (two trailing spaces
+    or a trailing backslash)."""
     return line.rstrip("\n").endswith("  ") or line.rstrip("\n").endswith("\\")
 
 
@@ -72,7 +87,8 @@ def last_word(text: str) -> str:
 
 
 def looks_like_mid_sentence_break(current: str, nxt: str) -> str | None:
-    """怪しい改行なら理由の文字列を、問題なければNoneを返す"""
+    """Returns a reason string if this looks like a suspicious break,
+    otherwise None."""
     stripped = current.rstrip()
     if not stripped:
         return None
@@ -83,32 +99,52 @@ def looks_like_mid_sentence_break(current: str, nxt: str) -> str | None:
 
     next_stripped = nxt.strip()
     if not next_stripped:
-        return None  # 次が空行 = 段落境界
+        return None  # next line is blank -> paragraph boundary
     if LIST_ITEM_RE.match(nxt) or HEADING_RE.match(nxt) or BLOCKQUOTE_RE.match(nxt):
-        return None  # 新しい構造の始まり
+        return None  # next line starts a new structural element
 
     body = strip_comment_prefix(stripped)
     for particle in JP_TRAILING_PARTICLES:
         if body.endswith(particle):
-            return f'行末が助詞・接続語「{particle}」で終わっている'
+            return f'line ends with the particle/conjunction "{particle}"'
 
     word = last_word(body)
     if word in EN_TRAILING_WORDS:
-        return f'行末が接続語/前置詞/冠詞 "{word}" で終わっている'
+        return f'line ends with the conjunction/preposition/article "{word}"'
 
-    # 英語の行で、文末記号がなく、次の行が小文字始まりで続いている場合は
-    # 機械的な折り返しの可能性が高い。
+    # English line with no terminal punctuation, continuing into a
+    # lowercase-initial next line: likely a mechanical wrap.
     if re.search(r"[A-Za-z]", body) and re.match(r"^[a-z]", next_stripped):
-        return "文末記号がないまま次の行が小文字で続いている(英語)"
+        return "no terminal punctuation, and the next line continues in lowercase (English)"
 
-    # 日本語の行で、文末記号もなく助詞でもないが、次の行がひらがな/漢字から
-    # 始まっていて大文字開始でもない場合は、機械的な折り返しの可能性を示す。
+    # Japanese line with no terminal punctuation and no trailing particle,
+    # continuing into a line starting with hiragana/kanji: likely a
+    # mechanical wrap.
     if re.search(r"[぀-んァ-ヶ一-龠]", body) and re.match(
         r"^[぀-んァ-ヶ一-龠]", next_stripped
     ):
-        return "文末記号がないまま次の行に続いている(日本語)"
+        return "no terminal punctuation, and the next line continues (Japanese)"
 
     return None
+
+
+def frontmatter_end_index(lines: list[str]) -> int:
+    """If the file opens with a `---` YAML frontmatter block, return the
+    index of its closing `---` line; otherwise return -1. Frontmatter is
+    key: value data, not prose, so it's excluded from scanning."""
+    if not lines or lines[0].rstrip() != "---":
+        return -1
+    for i in range(1, len(lines)):
+        if lines[i].rstrip() == "---":
+            return i
+    return -1
+
+
+MARKDOWN_EXTENSIONS = (".md", ".markdown", ".mdx")
+
+
+def is_comment_line(line: str) -> bool:
+    return bool(COMMENT_PREFIX_RE.match(line))
 
 
 def scan_file(path: str) -> list[Finding]:
@@ -117,8 +153,15 @@ def scan_file(path: str) -> list[Finding]:
 
     findings: list[Finding] = []
     in_code_fence = False
+    frontmatter_end = frontmatter_end_index(lines)
+    is_yaml_file = path.lower().endswith(YAML_EXTENSIONS)
+    is_markdown = path.lower().endswith(MARKDOWN_EXTENSIONS)
 
     for i, line in enumerate(lines):
+        if i <= frontmatter_end:
+            continue
+        if is_yaml_file and YAML_KEY_RE.match(line):
+            continue
         if CODE_FENCE_RE.match(line):
             in_code_fence = not in_code_fence
             continue
@@ -126,10 +169,22 @@ def scan_file(path: str) -> list[Finding]:
             continue
         if TABLE_ROW_RE.match(line):
             continue
+        # In a non-Markdown source file, only comment lines are prose;
+        # actual code is never a candidate (it isn't sentences at all,
+        # and comparing code line N to code line N+1 produces constant
+        # false positives).
+        if not is_markdown and not is_comment_line(line):
+            continue
         if i + 1 >= len(lines):
             continue
 
         nxt = lines[i + 1]
+        # Likewise, don't compare a comment line to a following line of
+        # actual code — that's the end of the comment block, not a
+        # mid-sentence continuation.
+        if not is_markdown and not is_comment_line(nxt):
+            continue
+
         reason = looks_like_mid_sentence_break(line, nxt)
         if reason:
             findings.append(
@@ -166,7 +221,7 @@ def main() -> int:
         print(json.dumps([asdict(f) for f in all_findings], ensure_ascii=False, indent=2))
     else:
         if not all_findings:
-            print("不自然な改行の疑いは見つかりませんでした。")
+            print("No suspicious line breaks found.")
         for f in all_findings:
             print(f"{f.file}:{f.line}: {f.reason}")
             print(f"    > {f.snippet}")

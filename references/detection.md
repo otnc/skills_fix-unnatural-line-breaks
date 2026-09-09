@@ -1,50 +1,51 @@
-# 検出の観点
+# Detection criteria
 
-「不自然な改行」とは、意味のある区切り(段落・箇条書き・見出し・コードブロック)ではなく、単に一定の文字数に達したという理由だけで挿入された改行のこと。 見分け方は言語や文脈によって多少異なる。
+An "unnatural line break" is a newline that isn't at a meaningful boundary (paragraph, list item, heading, code block) but was inserted purely because a line reached some column width.
 
-## 共通の兆候
+## Common signals
 
-次のいずれかに当てはまる行末の改行は、まず疑ってかかる。
+Treat a line-ending break as suspicious when any of the following hold.
 
-- 行が句読点(`。` `、` `.` `,`)や閉じ括弧以外の文字で終わっている
-- 行が助詞(日本語: 「は」「が」「を」「に」「で」「と」「も」「の」など)で終わっている
-- 行が接続詞や前置詞(英語: `and` `or` `but` `of` `to` `with` `in` など)で終わっている
-- 次の行が小文字のアルファベットや、ひらがな・漢字から始まっており、新しい文・新しい箇条書き項目の書き出しになっていない
-- ファイル全体(または段落全体)を見たとき、ほぼすべての行が特定の文字数(例: 72〜80桁)付近で折り返されている(明確にツール的な機械的折り返しの痕跡)
+- The line ends on something other than sentence-final punctuation (`。` `」` `』` `.` `!` `?` `！` `？`) or a closing bracket.
+- The line ends on a Japanese particle (`は` `が` `を` `に` `で` `と` `も` `の`, etc.).
+- The line ends on a conjunction or preposition in English (`and` `or` `but` `of` `to` `with` `in`, etc.).
+- The next line starts with a lowercase English letter, or with hiragana/kanji, without introducing a new sentence or a new list item.
+- Looking at the whole file (or a whole paragraph), nearly every line wraps at roughly the same column (e.g. 72–80 characters) — a clear sign of mechanical, tool-driven wrapping.
 
-## 日本語特有の観点
+## Japanese-specific cues
 
-日本語は単語間にスペースがないため、英語よりも「不自然さ」が視覚的に分かりにくい。 次の位置での改行は特に不自然に見えるので優先的に疑う。
+Japanese has no spaces between words, so unnatural breaks are visually less obvious than in English. Watch especially for breaks at these positions.
 
-- 読点(`、`)の直前(読点の直後で改行するのは問題ないが、直前で改行して次の行の先頭に読点が来るのは不自然)
-- 助詞1文字だけが行末や行頭に孤立している場合(例: 「これは」で行が終わり、次の行が「便利です」と続くような分断)
-- 「〜することが」で行が終わり、次の行が「できます」と続くような、複合的な述語・助動詞の途中での分断
-- カギ括弧(「」)や丸括弧(())の開き記号の直後、閉じ記号の直前
+- Right before a `、` (breaking right after `、` is fine; breaking right before it, so the next line starts with `、`, is not).
+- Right after or right before a single-character particle left stranded at the end or start of a line — for example, a line ending in `これは` with the next line continuing `便利です`.
+- In the middle of a compound predicate or auxiliary verb — for example, a line ending in `〜することが` with the next line continuing `できます`.
+- Right after an opening bracket (`「` or `(`) or right before a closing one (`」` or `)`).
 
-## 英語特有の観点
+## English-specific cues
 
-- 単語の途中でのハイフネーション(ワードラップによる自動ハイフン挿入)
-- 前置詞句・関係代名詞節の途中(`the file that\nwas created` のような分断)
-- Markdownのリンク記法 `[text](url)` の `[text]` と `(url)` が別の行に分かれている
+- A word split mid-way by automatic hyphenation (word-wrap-driven hyphen insertion).
+- A break in the middle of a prepositional phrase or relative clause — e.g. splitting `the file that\nwas created`.
+- A Markdown link split across lines so that `[text]` and `(url)` end up on different lines.
 
-## 誤検出に注意する箇所
+## Watch out for false positives
 
-以下は改行があっても問題ないので、直す対象にしない。
+The following are fine as-is and should not be "fixed."
 
-- コードブロック(\`\`\` で囲まれた範囲)の中身
-- Markdownのテーブルの行
-- 箇条書きの項目と項目の間の改行(これは意味のある区切り)
-- 見出し(`#`)の前後の改行
-- Markdownで意図的に改行を強制している箇所(行末の半角スペース2つ、または `<br>`)
-- 長いURLやコードの単独行
-- 詩やコード例など、改行そのものに意味がある引用
+- Anything inside a fenced code block (delimited by \`\`\`).
+- Markdown table rows.
+- The line break between one list item and the next — that's a meaningful boundary.
+- The line breaks immediately before/after a heading (`#`).
+- An intentional Markdown line break: two trailing spaces, or an explicit `<br>`.
+- A long URL or a standalone code line.
+- Poetry, code samples, or quotations where the line break itself carries meaning.
+- Structured config such as CI workflow YAML, JSON, or shell scripts embedded in a YAML block scalar (`key: |`). Nearly every line there is either a `key: value` pair or executable script, not prose, and `scripts/lint.py` has no real YAML parser to tell the difference reliably — treat such files as out of scope entirely rather than trying to lint them.
 
-## ファイル種別ごとの探し方
+## Where to look, by file type
 
-### Markdownドキュメント
+### Markdown documentation
 
-段落(空行で区切られたブロック)ごとに、内部の改行をすべて洗い出す。 1段落が複数行にまたがっている場合、それぞれの改行が意味のある区切り(箇条書きの項目境界など、実際には段落自体が複数の項目の集まりである場合)なのか、単なる折り返しなのかを見分ける。
+Treat each paragraph (a block separated by blank lines) as a unit, then list every internal line break inside it. When a "paragraph" spans multiple lines, figure out whether each break is a meaningful boundary (the paragraph might actually be a collection of separate list-like items) or just mechanical wrapping.
 
-### コードコメント・docstring
+### Code comments and docstrings
 
-`//` や `/* */`、`#`、`"""` などのコメント記法で書かれた連続する行を1つのブロックとして扱う。 1つの文(ピリオドや句点で終わる単位)が複数のコメント行にまたがっている場合は、不自然な改行の疑いが強い。
+Treat a run of consecutive comment lines (`//`, `/* */`, `#`, `"""`, etc.) as one block. If a single sentence (a unit ending in a period or `。`) spans more than one comment line, that's a strong signal of an unnatural break.
