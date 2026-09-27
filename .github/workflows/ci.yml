@@ -17,7 +17,7 @@ jobs:
           node-version: 22
 
       - name: Run lint.mjs test suite
-        run: node --test scripts/*.test.mjs
+        run: npm test
 
   self-lint:
     runs-on: ubuntu-latest
@@ -28,7 +28,38 @@ jobs:
         with:
           node-version: 22
 
-      # scripts/lint.mjs never fails on findings (they're suggestions, not verdicts — see SKILL.md), so this step is informational only: it surfaces regressions in the skill's own docs and comments without blocking CI.
-      # Covers everything with prose or comments in the repo: docs, the scripts themselves (# and // comments), and the workflow files (# comments).
+      # lint.mjs never fails on findings (they're suggestions, not verdicts — see SKILL.md), so this step is informational only: it surfaces regressions in the skill's own docs and comments without blocking CI.
+      # Covers everything with prose or comments in the repo (the file list lives in scripts/lint-self.mjs): docs, the README base file, the scripts and tests themselves (# and // comments), and the workflow files (# comments).
       - name: Self-lint prose for unnatural line breaks
-        run: node scripts/lint.mjs SKILL.md README.md README.ja.md CHANGELOG.md references/*.md scripts/*.mjs .github/workflows/*.yml
+        run: npm run lint:self
+
+  docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # kiritan needs Node.js 22.7+.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Check that README.md and README.ja.md match base/README.base.md
+        run: npm run docs:verify
+
+      - name: Check translations for missing or stale sections
+        run: npm run docs:check
+
+  skills-cli:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Check that the skills CLI finds the skill
+        run: npx --yes skills add . --list | grep -q fix-unnatural-line-breaks

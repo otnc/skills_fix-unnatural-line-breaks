@@ -8,7 +8,7 @@ import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { test } from "node:test";
 
-const SCRIPT = join(dirname(fileURLToPath(import.meta.url)), "lint.mjs");
+const SCRIPT = join(dirname(fileURLToPath(import.meta.url)), "..", "skills", "fix-unnatural-line-breaks", "scripts", "lint.mjs");
 
 function runLint(content, filename) {
   const dir = mkdtempSync(join(tmpdir(), "lint-test-"));

@@ -1,0 +1,18 @@
+{
+  "name": "fix-unnatural-line-breaks",
+  "private": true,
+  "description": "Agent Skill that detects and fixes unnatural mid-sentence line breaks in Markdown docs and code comments (English/Japanese).",
+  "license": "MIT",
+  "author": "otoneko.",
+  "type": "module",
+  "scripts": {
+    "test": "node --test tests/*.test.mjs",
+    "lint:self": "node scripts/lint-self.mjs",
+    "docs:build": "kiritan build",
+    "docs:check": "kiritan check",
+    "docs:verify": "kiritan verify"
+  },
+  "devDependencies": {
+    "kiritan": "^0.6.1"
+  }
+}
